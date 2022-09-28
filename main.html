@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>eel node editor</title>
+    <!-- import js -->
+	<script type="text/javascript" src='js/litegraph.core.js'></script>
+    <script type="text/javascript" src='js/nodecv.js'></script>
+    <script type="text/javascript" src='js/menu.js'></script>
+	<script type="text/javascript" src="/eel.js"></script>
+    <script type="text/javascript" src='js/curvenode.js'></script>
+    <script type="text/javascript" src='js/comm.js'></script>
+
+    <!-- style -->
+
+    <style type="text/css">
+        html{
+            height: 100%;
+            overflow: hidden;   
+        }
+
+        body{
+            color:#363636;
+            height: 100%;
+            margin: 0px;
+            padding: 0px;
+            overflow: hidden;
+        }
+
+        #main{
+            height: 100%;
+            width: 100%;
+        }
+
+        .menu_bar{
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            background-color: #383838;
+            color:#d5d5d5;
+        }
+    </style>
+    <style type="text/css">
+        /*menu*/
+        .menu_entry{
+            font-size: 16px;
+            padding-right: 15px;
+            user-select: none;
+        }
+
+        .menu_entry .menu_down_contain{
+            position: absolute;
+            visibility: hidden;
+            z-index: 1;
+            width: 100px;
+            color:#fff;
+            display: flex;
+            flex-direction: column;
+            background-color: #383838;
+        }
+
+        .menu_entry:hover .menu_down_contain{
+            visibility: visible;
+        }
+
+        .sub_menu:hover{
+            background-color: #fd7aff;
+        }
+
+        /*2rd menu*/
+        .sub_menu .menu_left_contain{
+            position: absolute;
+            visibility: hidden;
+            z-index: 1;
+            width: 100px;
+            margin-top:-22px;
+            margin-left: 100px;
+            color:#fff;
+            display: flex;
+            flex-direction: column;
+            background-color: #383838;
+        }
+
+        .sub_menu:hover .menu_left_contain{
+            visibility: visible;
+        }
+
+        .sub_menu_sperate{
+            font-size: 3px;
+            border-bottom : 1px solid grey;
+            /*height: 10px;*/
+            height: 5px;
+        }
+    </style>
+    <style type="text/css">
+        .graphdialog {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            /*min-height: 2em;*/
+            background-color: #333;
+            font-size: 1.2em;
+            box-shadow: 0 0 10px black !important;
+            z-index: 10;
+        }
+
+        .graphdialog .name{
+            color: white;
+            font-size: 3px;
+        }
+
+        .graphdialog input,
+        .graphdialog textarea,
+        .graphdialog select {
+            margin: 3px;
+            min-width: 60px;
+            min-height: 1.5em;
+            background-color: black;
+            border: 0;
+            color: white;
+            padding-left: 10px;
+            outline: none;
+        }
+
+        .graphdialog textarea {
+            min-height: 150px;
+        }
+
+        .graphdialog button {
+            margin-top: 3px;
+            /*vertical-align: top;*/
+            background-color: #999;
+            border: 0;
+        }
+
+        .graphdialog button.rounded,
+        .graphdialog input.rounded {
+            border-radius: 0 12px 12px 0;
+        }
+
+        .graphdialog .helper {
+            overflow: auto;
+            max-height: 200px;
+        }
+
+        .graphdialog .help-item {
+            padding-left: 10px;
+        }
+
+        .graphdialog .help-item:hover,
+        .graphdialog .help-item.selected {
+            cursor: pointer;
+            background-color: white;
+            color: black;
+        }
+    </style>
+
+    </head>
+
+    <body>
+        <div id='main'>
+        <div class="menu_bar" id='menu_bar'>
+            <div class="menu_entry"><span style='text-decoration: underline;'>F</span>ile
+                <div class="menu_down_contain">
+                    <div class="sub_menu">Open Graph</div>
+                    <div class="sub_menu">Load Graph</div>
+                    <div class="sub_menu">Demo Graph...</div>
+                    <div class="sub_menu">About</div>
+                </div>
+            </div>
+            <div class="menu_entry"><span style='text-decoration: underline;'>S</span>ystem
+                <div class="menu_down_contain">
+                    <div class="sub_menu" id='run' onclick="step_run = true;">Run</div>
+                    <div class="sub_menu" id='stop' onclick='step_run = false;'>Stop</div>
+                </div>
+            </div>
+            <div class="menu_entry"><span style='text-decoration: underline;'>V</span>iew
+                <div class="menu_down_contain">
+                    <div class="sub_menu" onclick="fullscreen()"><span style='text-decoration: underline;'>F</span>ull Screen</div>
+                </div>
+            </div>
+            <div class="menu_entry" id='nodes'>CV Nodes
+                <div class="menu_down_contain">
+                </div>
+            </div>
+        </div>
+            <!-- <> -->
+            <div class='pview'>
+                <canvas id='canvas' width="900" height="600"></canvas>
+            </div>
+        </div>
+    </body>
+
+    <script type="text/javascript">
+        
+    </script>
+
+    <script type="text/javascript">
+        //jquery like function
+        function $(id) {
+            return typeof id === "string"?document.getElementById(id):document;
+        }
+
+        var time_delta = 1000;
+        var step_run = true;
+
+        function run(){
+            if(step_run)
+                graph.runStep();
+        }
+
+        var timer = setInterval(run, time_delta);
+
+        function fullscreen(){
+            if ($('main').requestFullscreen ) {
+                $('main').requestFullscreen( Element.ALLOW_KEYBOARD_INPUT );
+            }
+
+            setTimeout(function(){
+                view_resize();
+            },100);
+        }
+
+        function callfun(node_name){
+            console.log("loading model:"+ node_name)
+            var node_neo = LiteGraph.createNode(node_name);
+            // console.log(node_neo)
+            node_neo.pos = [100,100];
+            graph.add(node_neo);
+            node_neo.onConnectionsChange = function(type,slot,connected,link_info,input_info){
+                    //each connect change will casue graph step called
+                    graph.runStep();
+                    canvas.setDirty(true,true)
+            }
+        }
+
+        var graph = new LGraph();
+        var canvas = new LGraphCanvas("#canvas",graph);
+
+        function view_resize(){
+            let oc = $('main');
+            let width = oc.offsetWidth,
+                height = oc.offsetHeight;
+
+            if( !width || !height )
+                return;
+
+            if(canvas.canvas.width != width || canvas.canvas.height != height){
+                canvas.resize(width,height)
+                canvas.setDirty(true,true)
+            }
+        }
+
+        //force resize at first
+        view_resize();
+        //add listener to windows resize
+        window.addEventListener('resize', view_resize);
+
+        //js->python
+        eel.expose(updateImageSrc);
+        function updateImageSrc(val,elem_id) {
+            let elem = document.getElementById(elem_id);
+            elem.src = "data:image/jpeg;base64," + val;
+        }
+
+        var menu = new Menu();
+        for (var i in LiteGraph.registered_node_types)
+        {
+            var node = LiteGraph.registered_node_types[i];
+            var categories = node.category.split("/");
+            // console.log(i)
+            for(var i in categories){
+                //add menu entry
+                if(!$(categories[i])){
+                    menu.add_Menu(categories[i],{
+                        entry:'nodes',
+                        checked:false
+                    },"");
+                }
+                //add sub menus
+                var strfun = categories[i].toLowerCase()+'/'+node.title.toLowerCase();
+                var strcallback = "callfun('"+strfun+"')";
+                // console.log(strcallback)
+                menu.add_Sub_Menu(node.title,categories[i],{},strcallback)
+            }
+
+        }
+
+    </script>
+    <script type="text/javascript">
+        //splash
+        
+    </script>
+</html>
