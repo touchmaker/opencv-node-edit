@@ -1,5 +1,6 @@
 Eel opencv node editor  
 
+
 requirement:
 ```bash
 pip install eel
@@ -40,8 +41,6 @@ now supported node
 | 	hsv2rgb| 	convert hsv2rgb| 
 | 	rgb2hsv| 	convert rgb2hsv| 
 
-	
-
 ### input
 |name  |desc  |
 |--|--|
@@ -52,8 +51,8 @@ now supported node
 ### output
 |name  |desc  |
 |--|--|
-|Preview	|图像显示|
-|	Save image|	图像保存|
+|Preview	|show image on canvas|
+|	Save image|	save image to local|
 		
 ### image utils
 |name  |desc  |
@@ -75,15 +74,15 @@ now supported node
 |	Dilate|	和膨胀|
 |	Filter|	筛选|
 
-### image desc/labing
+### image desc/label
 |name  |desc  |
 |--|--|
 |	Hist	|histogram|
-|	Drawstr|	draw string on image|
+|	Drawstr |draw string on image|
 |	Rect	|draw rect on image|
 |	Line	|draw line on image|
 		
-array(not yet)
+### array(not yet)
 |name  |desc  |
 |--|--|
 |group|
